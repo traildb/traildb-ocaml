@@ -1,10 +1,10 @@
 .PHONY:
 	all
 
-all: hello.byte hello.native
+all: hello.native
 
 clean:
-	$(RM) hello.native hello.byte
+	$(RM) hello.native
 	$(RM) -rf _build
 
 hello.native: hello.ml
