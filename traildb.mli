@@ -15,7 +15,7 @@ val uuid : uuid Ctypes_static.typ;;
 type values;;
 val values : values Ctypes_static.typ;;
 
-type timestamp;;
+type timestamp = Unsigned.uint64;;
 
 (* initialize a constructor *)
 val tdb_cons_init : unit -> tdb;;
