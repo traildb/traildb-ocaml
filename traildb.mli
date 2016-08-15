@@ -17,17 +17,29 @@ val values : values Ctypes_static.typ;;
 
 type timestamp = Unsigned.uint64;;
 
+type value_lengths;;
+val value_lengths : value_lengths Ctypes_static.typ;;
+
+
 (* initialize a constructor *)
 val tdb_cons_init : unit -> tdb;;
 
 (* open a constructor *)
-val tdb_cons_open : cons -> string -> string Ctypes_static.ptr -> error;;
+val tdb_cons_open : cons -> string -> string Ctypes_static.ptr -> Unsigned.uint64 -> error;;
 
 (* close a constructor *)
 val tdb_cons_close : cons -> unit;;
 
-val tdb_cons_add : cons -> uuid -> timestamp -> values -> error;;
+val tdb_cons_add : cons -> uuid -> timestamp -> values -> value_lengths -> error;;
 
-val tdb_cons_append : cons -> tdb -> error
+val tdb_cons_append : cons -> tdb -> error;;
 
-val tdb_cons_finalize : cons -> error
+val tdb_cons_finalize : cons -> error;;
+
+module Constructor : sig
+  type t;;
+  val create : root:string -> ofields:string list -> unit -> t;;
+  val add : cons:t -> cookie:string -> timestamp:Unsigned.uint64 -> values:string list -> unit -> error option;;
+end;;
+
+

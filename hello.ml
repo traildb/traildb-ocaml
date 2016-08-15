@@ -3,7 +3,7 @@ open Traildb;;
 let main =
   (
     print_string "hi";
-    ignore (tdb_cons_init ())
+    ignore (Constructor.create ~root:"./awesome" ~ofields:[] ())
   );;
 
 let () = main;;
