@@ -36,10 +36,13 @@ val tdb_cons_append : cons -> tdb -> error;;
 
 val tdb_cons_finalize : cons -> error;;
 
+val tdb_error_str : error -> string;;
+
 module Constructor : sig
   type t;;
   val create : root:string -> ofields:string list -> unit -> t;;
-  val add : cons:t -> cookie:string -> timestamp:Unsigned.uint64 -> values:string list -> unit -> error option;;
+  val add : cons:t -> cookie:string -> timestamp:Unsigned.uint64 -> values:string list -> unit -> error;;
+  val finish : cons:t -> unit -> error;;
 end;;
 
 

@@ -1,9 +1,12 @@
 open Traildb;;
 
-let main =
-  (
+let main = 
+  begin
     print_string "hi";
-    ignore (Constructor.create ~root:"./awesome" ~ofields:[] ())
-  );;
+    let cons = Constructor.create ~root:"./awesome" ~ofields:[] () in
+    (Constructor.add ~cons:cons ~cookie:"whateverwhatever" ~timestamp:(Unsigned.UInt64.of_int 32) ~values:[] () |> tdb_error_str |> Printf.printf "%s\n";
+    Constructor.add ~cons:cons ~cookie:"whateverwhatever" ~timestamp:(Unsigned.UInt64.of_int 64) ~values:[] () |> tdb_error_str |> Printf.printf "%s\n";
+    Constructor.finish ~cons:cons () |> tdb_error_str |> Printf.printf "%s\n")
+  end;;
 
 let () = main;;

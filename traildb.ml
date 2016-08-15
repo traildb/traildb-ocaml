@@ -75,6 +75,9 @@ let tdb_cons_append =
 let tdb_cons_finalize =
   foreign "tdb_cons_finalize" (cons @-> returning error);;
 
+let tdb_error_str =
+  foreign "tdb_error_str" (error @-> returning Ctypes.string);;
+
 (* tdb_error tdb_cons_set_opt(tdb_cons *cons,
                                       tdb_opt_key key,
                                       tdb_opt_value value) *)
@@ -98,6 +101,7 @@ let uuid_of_string string =
     Ctypes.CArray.set array i (string.[i] |> int_of_char |> Unsigned.UInt8.of_int )
   done;
   array)
+
 
 
 (* TODO list or array *)
@@ -126,24 +130,26 @@ module Constructor = struct
   (* TODO: better error representation *)
   let add ~cons:cons0 ~cookie:cookie0 ~timestamp:timestamp0 ~values:values0 () =
     match String.length cookie0 with
-    | 32 ->
+    | 16 ->
         (
           let value_lengths = List.map (Unsigned.UInt64.of_int % String.length) values0 in
           let value_lengths = Ctypes.CArray.of_list Ctypes.uint64_t value_lengths in
           let value_lengths = Ctypes.CArray.start value_lengths in
-          Some (
+          (
             tdb_cons_add 
             cons0.cons
             (uuid_of_string cookie0 |> Ctypes.CArray.start)
             timestamp0
             (values0 |> Ctypes.CArray.of_list Ctypes.string |> Ctypes.CArray.start)
             value_lengths
-          ) : error option
+          )
         )
-    | _ -> None;;
+    | _ -> invalid_arg "cookie must be exactly 16 bytes";;
 
-
-
+  let finish ~cons:cons0 () =
+    let err = tdb_cons_finalize cons0.cons in
+    let _ = tdb_cons_close cons0.cons in
+    err
 end;;
 
 
