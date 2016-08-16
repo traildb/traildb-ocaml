@@ -55,7 +55,7 @@ val tdb_error_str : error -> string;;
 
 val tdb_init : unit -> tdb;;
 
-val tdb_open : tdb -> string;;
+val tdb_open : tdb -> string -> error;;
 
 val tdb_willneed : tdb -> unit;;
 
@@ -79,6 +79,20 @@ val tdb_get_uuid : tdb -> tdb_item -> uuid;;
 
 val tdb_get_trail_id : tdb -> uuid -> trail_id -> error;;
 
+val tdb_num_trails : tdb -> Unsigned.uint64;;
+
+val tdb_num_events : tdb -> Unsigned.uint64;;
+
+val tdb_num_fields : tdb -> Unsigned.uint64;;
+
+val tdb_min_timestamp : tdb -> Unsigned.uint64;;
+
+val tdb_max_timestamp : tdb -> Unsigned.uint64;;
+
+val tdb_version : tdb -> Unsigned.uint64;;
+
+(* uuid_of_string *)
+(* is_tdb_err_ok *)
 
 module Constructor : sig
   type t;;

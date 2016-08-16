@@ -1,3 +1,5 @@
+open Core.Std;;
+
 let (@->) = Ctypes.(@->);;
 let returning = Ctypes.returning;;
 let (%) = Core.Std.Fn.compose;;
@@ -32,6 +34,7 @@ let value_lengths = Ctypes.ptr Ctypes.uint64_t;;
 (* uint32_t *)
 type tdb_field = Unsigned.uint32;;
 let tdb_field = Ctypes.uint32_t;;
+let tdb_field_of_int = Unsigned.UInt32.of_int;;
 
 (* uint64_t *)
 type tdb_item = Unsigned.uint64;;
@@ -124,7 +127,7 @@ let tdb_init =
 
 (* tdb_error tdb_open(tdb *db, const char *orig_root) *)
 let tdb_open =
-  foreign "tdb_open" (tdb @-> returning Ctypes.string);;
+  foreign "tdb_open" (tdb @-> Ctypes.string @-> returning error);;
 
 (* void tdb_willneed(const tdb *db) *)
 let tdb_willneed =
@@ -193,17 +196,33 @@ let tdb_get_uuid =
 let tdb_get_trail_id =
   foreign "tdb_get_trail_id" (tdb @-> uuid @-> trail_id @-> returning error)
 
-(* TODO: stopped at
- *
- * TDB_EXPORT uint64_t tdb_num_trails(const tdb *db)
- * {
-   * * return db->num_trails;
-   *)
+(* uint64_t tdb_num_trails(const tdb *db) *)
+let tdb_num_trails =
+  foreign "tdb_num_trails" (tdb @-> returning Ctypes.uint64_t);;
 
+(* uint64_t tdb_num_events(const tdb *db) *)
+let tdb_num_events =
+  foreign "tdb_num_events" (tdb @-> returning Ctypes.uint64_t);;
 
+(* uint64_t tdb_num_fields(const tdb *db) *)
+let tdb_num_fields =
+  foreign "tdb_num_fields" (tdb @-> returning Ctypes.uint64_t);;
+
+(* uint64_t tdb_min_timestamp(const tdb *db) *)
+let tdb_min_timestamp =
+  foreign "tdb_min_timestamp" (tdb @-> returning Ctypes.uint64_t);;
+
+(* uint64_t tdb_max_timestamp(const tdb *db) *)
+let tdb_max_timestamp =
+  foreign "tdb_max_timestamp" (tdb @-> returning Ctypes.uint64_t);;
+
+(* uint64_t tdb_version(const tdb *db) *)
+let tdb_version =
+  foreign "tdb_version" (tdb @-> returning Ctypes.uint64_t);;
 
 
 (* higher-level stuff *)
+(* TODO put the higher-level stuff that doesn't come directly from the C bindings in its own module *)
 
 (* TODO: replace with implementation that doesn't copy the string unnecessarily *)
 let uuid_of_string string =
@@ -215,7 +234,13 @@ let uuid_of_string string =
   done;
   array)
 
-
+(* TODO: we don't need to use a string here *)
+let is_tdb_err_ok err =
+  let err = tdb_error_str err in
+  if err = "TDB_ERR_OK" then
+    `Ok
+  else
+    `Error;;
 
 (* TODO list or array *)
 module Constructor = struct
@@ -245,7 +270,7 @@ module Constructor = struct
     match String.length uuid0 with
     | 16 ->
         (
-          let value_lengths = List.map (Unsigned.UInt64.of_int % String.length) values0 in
+          let value_lengths = List.map values0 ~f:(Unsigned.UInt64.of_int % String.length) in
           let value_lengths = Ctypes.CArray.of_list Ctypes.uint64_t value_lengths in
           let value_lengths = Ctypes.CArray.start value_lengths in
           (
@@ -267,8 +292,40 @@ end;;
 
 module TrailDB = struct
   type t = {
-    tdb: tdb
+    tdb: tdb;
+    fields: string list
   }
 
-  let of_path path = failwith "not yet implemented";;
+  (* TODO: do we want to follow symlinks? *)
+  (* TODO: report error message *)
+  let of_path path = match Core.Core_sys.file_exists path with
+  | `No -> failwith "path does not exist"
+  | `Unknown -> failwith "path not known to exist"
+  | `Yes -> (
+    let db = tdb_init () in
+    let err = tdb_open db path in
+    match is_tdb_err_ok err with
+    | `Error -> failwith "failed to open tdb"
+    | `Ok -> (
+      let num_fields = tdb_num_fields db in
+
+      (* TODO: this is probably not right, here is the corresponding fragment in
+  * the go source code
+  *	for i := uint64(0); i <= uint64(numFields)-1; i++ {
+		fieldName := C.GoString(C.tdb_get_field_name(db, C.tdb_field(i)))
+		fieldNameToId[fieldName] = uint64(i)
+		fields = append(fields, fieldName)
+}
+*)
+      let nth_field i = tdb_get_field_name db (tdb_field_of_int i) in
+      (* TODO converting a UInt64 to an int can fail potentially!
+       * we should probably use a different type here *)
+      let fields = List.init (Unsigned.UInt64.to_int num_fields) ~f:nth_field in
+      {
+        tdb = db;
+        fields = fields;
+      }
+    )
+  )
+
 end
