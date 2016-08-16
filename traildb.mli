@@ -30,6 +30,12 @@ val single_value_length : single_value_length Ctypes_static.typ;;
 type tdb_item;;
 val tdb_item : tdb_item Ctypes_static.typ;;
 
+type tdb_val;;
+val tdb_val : tdb_val Ctypes_static.typ;;
+
+type trail_id;;
+val trail_id : trail_id Ctypes_static.typ;;
+
 (* initialize a constructor *)
 val tdb_cons_init : unit -> tdb;;
 
@@ -46,6 +52,33 @@ val tdb_cons_append : cons -> tdb -> error;;
 val tdb_cons_finalize : cons -> error;;
 
 val tdb_error_str : error -> string;;
+
+val tdb_init : unit -> tdb;;
+
+val tdb_open : tdb -> string;;
+
+val tdb_willneed : tdb -> unit;;
+
+val tdb_dontneed : tdb -> unit;;
+
+val tdb_close : tdb -> unit;;
+
+val tdb_lexicon_size : tdb -> tdb_field -> Unsigned.uint64;;
+
+val tdb_get_field : tdb -> string -> tdb_field -> error;;
+
+val tdb_get_field_name : tdb -> tdb_field -> string;;
+
+val tdb_get_item : tdb -> tdb_field -> string -> Unsigned.uint64 -> tdb_item;;
+
+val tdb_get_value : tdb -> tdb_field -> tdb_val -> single_value_length;;
+
+val tdb_get_item_value : tdb -> tdb_item -> single_value_length -> string;;
+
+val tdb_get_uuid : tdb -> tdb_item -> uuid;;
+
+val tdb_get_trail_id : tdb -> uuid -> trail_id -> error;;
+
 
 module Constructor : sig
   type t;;

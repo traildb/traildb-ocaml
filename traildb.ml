@@ -52,7 +52,7 @@ let trail_id = Ctypes.ptr Ctypes.uint64_t;;
 
 (* uint64_t *)
 type tdb_val = Unsigned.uint64;;
-let tdb_val = Ctypes.ptr Ctypes.uint64_t;;
+let tdb_val = Ctypes.uint64_t;;
 
 (*
  * tdb_opt_key is an enum
