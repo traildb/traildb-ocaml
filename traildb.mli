@@ -65,7 +65,8 @@ val tdb_close : tdb -> unit;;
 
 val tdb_lexicon_size : tdb -> tdb_field -> Unsigned.uint64;;
 
-val tdb_get_field : tdb -> string -> tdb_field -> error;;
+val tdb_get_field : tdb -> string -> tdb_field Ctypes.ptr -> error;;
+val pair_tdb_get_field : tdb -> string -> (tdb_field * error);;
 
 val tdb_get_field_name : tdb -> tdb_field -> string;;
 
@@ -77,7 +78,8 @@ val tdb_get_item_value : tdb -> tdb_item -> single_value_length -> string;;
 
 val tdb_get_uuid : tdb -> tdb_item -> uuid;;
 
-val tdb_get_trail_id : tdb -> uuid -> trail_id -> error;;
+val tdb_get_trail_id : tdb -> uuid -> trail_id Ctypes.ptr -> error;;
+val pair_tdb_get_trail_id : tdb -> uuid -> (trail_id * error);;
 
 val tdb_num_trails : tdb -> Unsigned.uint64;;
 
@@ -101,9 +103,15 @@ module Constructor : sig
   val finish : cons:t -> unit -> error;;
 end;;
 
-module TrailDB : sig
+module Db : sig
   type t;;
   val of_path : string -> t;;
+  val repr : t -> string;;
+  (* TODO: do we want this to be a
+   * covariant polymorphic variant? *)
+  (* val get_trail_id : t -> string -> [> `Error | `Ok of trail_id];; *)
+  val get_trail_id : t -> string -> (trail_id * error);;
+  val get_uuid : t -> trail_id -> uuid;;
+  val get_field : t -> string -> (tdb_field * error);;
 end;;
-
 

@@ -1,5 +1,17 @@
 open Core.Std;;
 
+(* TODO maybe use `Hex vs `Bin to
+ * separate out cases where we want a hex string versus a binary
+ * string *)
+(* TODO We seriously need a better way to use out-parameters in functions
+ * than using Ctypes.allocate_n to allocate a 1-element array
+ * for now though, that's the best I got *)
+(* TODO right now the allocate stuff uses Ctypes.uint32_t and Ctypes.uint64_t
+ * instead of type synonym *)
+(* We seriously need consistent error handling.
+ * let's move everything over to `Ok | `Error *)
+(* and have _exn variants as well *)
+
 let (@->) = Ctypes.(@->);;
 let returning = Ctypes.returning;;
 let (%) = Core.Std.Fn.compose;;
@@ -49,9 +61,10 @@ let tdb_item = Ctypes.uint64_t;;
 type single_value_length = Unsigned.uint64 Ctypes.ptr;;
 let single_value_length = Ctypes.ptr Ctypes.uint64_t;;
 
-(* uint64_t *trail_id *)
-type trail_id = Unsigned.uint64 Ctypes.ptr;;
-let trail_id = Ctypes.ptr Ctypes.uint64_t;;
+(* TODO: better handling of out parameters *)
+(* uint64_t trail_id *)
+type trail_id = Unsigned.uint64;;
+let trail_id = Ctypes.uint64_t;;
 
 (* uint64_t *)
 type tdb_val = Unsigned.uint64;;
@@ -153,7 +166,14 @@ let tdb_lexicon_size =
                            const char *field_name,
                            tdb_field *field *)
 let tdb_get_field =
-  foreign "tdb_get_field" (tdb @-> Ctypes.string @-> tdb_field @-> returning error);;
+  foreign "tdb_get_field" (tdb @-> Ctypes.string @-> Ctypes.ptr tdb_field @-> returning error);;
+let pair_tdb_get_field tdb str =
+  let buf = Ctypes.allocate_n Ctypes.uint32_t ~count:1 in
+  let err = tdb_get_field tdb str buf in
+  (* TODO: is there a memory safe way to do this? *)
+  let arr = Ctypes.CArray.from_ptr buf 1 in
+  let first_item = Ctypes.CArray.get arr 0 in
+  (first_item, err);;
 
 (* const char *tdb_get_field_name(const tdb *db,
  *                                tdb_field field) *)
@@ -194,7 +214,18 @@ let tdb_get_uuid =
                               const uint8_t *uuid,
                               uint64_t *trail_id) *)
 let tdb_get_trail_id =
-  foreign "tdb_get_trail_id" (tdb @-> uuid @-> trail_id @-> returning error)
+  foreign "tdb_get_trail_id" (tdb @-> uuid @-> Ctypes.ptr trail_id @-> returning error)
+(* TODO: more idiomatic way of representing out parameters *)
+(* TODO: deallocate? *)
+let pair_tdb_get_trail_id tdb uuid =
+  (* TODO: make sure we only need to allocate an array of 1 thing *)
+  let buf = Ctypes.allocate_n Ctypes.uint64_t ~count:1 in
+  let err = tdb_get_trail_id tdb uuid buf in
+  (* TODO: is there a memory safe way to do this? *)
+  let arr = Ctypes.CArray.from_ptr buf 1 in
+  let first_item = Ctypes.CArray.get arr 0 in
+  (first_item, err);;
+
 
 (* uint64_t tdb_num_trails(const tdb *db) *)
 let tdb_num_trails =
@@ -290,11 +321,18 @@ module Constructor = struct
     err
 end;;
 
-module TrailDB = struct
+module Db = struct
   type t = {
     tdb: tdb;
     fields: string list
   }
+
+  let repr db =
+    let rec join = function
+      | [] -> ""
+      | [x] -> x
+      | (x::xs) -> x ^ " " ^ join xs in
+    "tdb: " ^ join db.fields;;
 
   (* TODO: do we want to follow symlinks? *)
   (* TODO: report error message *)
@@ -308,18 +346,10 @@ module TrailDB = struct
     | `Error -> failwith "failed to open tdb"
     | `Ok -> (
       let num_fields = tdb_num_fields db in
-
-      (* TODO: this is probably not right, here is the corresponding fragment in
-  * the go source code
-  *	for i := uint64(0); i <= uint64(numFields)-1; i++ {
-		fieldName := C.GoString(C.tdb_get_field_name(db, C.tdb_field(i)))
-		fieldNameToId[fieldName] = uint64(i)
-		fields = append(fields, fieldName)
-}
-*)
       let nth_field i = tdb_get_field_name db (tdb_field_of_int i) in
       (* TODO converting a UInt64 to an int can fail potentially!
-       * we should probably use a different type here *)
+       * we should probably use a different type here 
+       * TODO: Is this how we convert from num_fields to a tdb_field? *)
       let fields = List.init (Unsigned.UInt64.to_int num_fields) ~f:nth_field in
       {
         tdb = db;
@@ -327,5 +357,16 @@ module TrailDB = struct
       }
     )
   )
+
+  (* TODO: better error handling *)
+  let get_trail_id db string =
+    pair_tdb_get_trail_id db.tdb (uuid_of_string string |> Ctypes.CArray.start);;
+
+  (* TODO: get_uuid can also fail *)
+  let get_uuid db trail_id = tdb_get_uuid db.tdb trail_id;;
+
+  let get_field db field_name =
+    pair_tdb_get_field db.tdb field_name;;
+
 
 end
