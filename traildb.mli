@@ -16,10 +16,19 @@ type values;;
 val values : values Ctypes_static.typ;;
 
 type timestamp = Unsigned.uint64;;
+val timestamp : timestamp Ctypes_static.typ;;
 
 type value_lengths;;
 val value_lengths : value_lengths Ctypes_static.typ;;
 
+type tdb_field;;
+val tdb_field : tdb_field Ctypes_static.typ;;
+
+type single_value_length;;
+val single_value_length : single_value_length Ctypes_static.typ;;
+
+type tdb_item;;
+val tdb_item : tdb_item Ctypes_static.typ;;
 
 (* initialize a constructor *)
 val tdb_cons_init : unit -> tdb;;
@@ -41,8 +50,13 @@ val tdb_error_str : error -> string;;
 module Constructor : sig
   type t;;
   val create : root:string -> ofields:string list -> unit -> t;;
-  val add : cons:t -> cookie:string -> timestamp:Unsigned.uint64 -> values:string list -> unit -> error;;
+  val add : cons:t -> uuid:string -> timestamp:Unsigned.uint64 -> values:string list -> unit -> error;;
   val finish : cons:t -> unit -> error;;
+end;;
+
+module TrailDB : sig
+  type t;;
+  val of_path : string -> t;;
 end;;
 
 
