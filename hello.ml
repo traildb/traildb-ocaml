@@ -28,7 +28,7 @@ let print_database tdb_paths =
 let main = 
   begin
     printf "%s\n" "hi";
-    let tdb_paths = {TdbPaths.tempdir = "./awesome"; file = "./awesome.tdb"} in
+    let tdb_paths = TdbPaths.{tempdir = "./awesome"; file = "./awesome.tdb"} in
     let _ = make_database tdb_paths in
     print_database tdb_paths
   end;;
