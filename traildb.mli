@@ -27,6 +27,15 @@ val tdb_field : tdb_field Ctypes_static.typ;;
 type single_value_length;;
 val single_value_length : single_value_length Ctypes_static.typ;;
 
+type cursor;;
+val cursor : cursor Ctypes_static.typ;;
+
+type event_filter;;
+val cursor : cursor Ctypes_static.typ;;
+
+type event;;
+val event_filter : event_filter Ctypes_static.typ;;
+
 type tdb_item;;
 val tdb_item : tdb_item Ctypes_static.typ;;
 
@@ -93,6 +102,20 @@ val tdb_max_timestamp : tdb -> Unsigned.uint64;;
 
 val tdb_version : tdb -> Unsigned.uint64;;
 
+val tdb_cursor_new : tdb -> cursor;;
+
+val tdb_cursor_free : cursor -> unit;;
+
+val tdb_cursor_unset_event_filter : cursor -> unit;;
+
+val tdb_cursor_set_event_filter : cursor -> event_filter -> error;;
+
+val tdb_get_trail : cursor -> trail_id -> error;;
+
+val tdb_get_trail_length : cursor -> Unsigned.uint64;; 
+
+val tdb_cursor_next : cursor -> event;;
+
 (* uuid_of_string *)
 (* is_tdb_err_ok *)
 
@@ -113,5 +136,6 @@ module Db : sig
   val get_trail_id : t -> string -> (trail_id * error);;
   val get_uuid : t -> trail_id -> uuid;;
   val get_field : t -> string -> (tdb_field * error);;
+  val version : t -> Unsigned.uint64;;
 end;;
 

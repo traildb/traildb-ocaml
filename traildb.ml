@@ -53,6 +53,15 @@ let tdb_field_of_int = Unsigned.UInt32.of_int;;
 type tdb_item = Unsigned.uint64;;
 let tdb_item = Ctypes.uint64_t;;
 
+type cursor = unit Ctypes.ptr;;
+let cursor = Ctypes.ptr Ctypes.void;;
+
+type event_filter = unit Ctypes.ptr;;
+let event_filter = Ctypes.ptr Ctypes.void;;
+
+type event = unit Ctypes.ptr;;
+let event = Ctypes.ptr Ctypes.void;;
+
 (* TODO: arguments with this type in the C codebase are typically
  * referred to with value_length as far as I can tell.
  * This type is separated from value_lengths because
@@ -252,6 +261,35 @@ let tdb_max_timestamp =
 let tdb_version =
   foreign "tdb_version" (tdb @-> returning Ctypes.uint64_t);;
 
+(* TDB_EXPORT tdb_cursor *tdb_cursor_new(const tdb *db) *)
+let tdb_cursor_new =
+  foreign "tdb_cursor_new" (tdb @-> returning cursor);;
+
+(* void tdb_cursor_free(tdb_cursor *c) *)
+let tdb_cursor_free =
+  foreign "tdb_cursor_free" (cursor @-> returning Ctypes.void);;
+
+(* void tdb_cursor_unset_event_filter(tdb_cursor *cursor) *) 
+let tdb_cursor_unset_event_filter =
+  foreign "tdb_cursor_unset_event_filter" (cursor @-> returning Ctypes.void);;
+
+(* tdb_error tdb_cursor_set_event_filter(tdb_cursor *cursor,
+                                         const struct tdb_event_filter *filter) *)
+let tdb_cursor_set_event_filter =
+  foreign "tdb_cursor_set_event_filter" (cursor @-> event_filter @-> returning error);;
+
+(* tdb_error tdb_get_trail(tdb_cursor *cursor,
+                           uint64_t trail_id)  *)
+let tdb_get_trail =
+  foreign "tdb_get_trail" (cursor @-> trail_id @-> returning error);;
+
+(* uint64_t tdb_get_trail_length(tdb_cursor *cursor) *)
+let tdb_get_trail_length =
+  foreign "tdb_get_trail_length" (cursor @-> returning Ctypes.uint64_t);;
+
+(* extern const tdb_event *tdb_cursor_next(tdb_cursor *cursor); *)
+let tdb_cursor_next =
+  foreign "tdb_cursor_next" (cursor @-> returning event)
 
 (* higher-level stuff *)
 (* TODO put the higher-level stuff that doesn't come directly from the C bindings in its own module *)
@@ -369,5 +407,7 @@ module Db = struct
   let get_field db field_name =
     pair_tdb_get_field db.tdb field_name;;
 
+  let version db =
+    tdb_version db.tdb;;
 
 end

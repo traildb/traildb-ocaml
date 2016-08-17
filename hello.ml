@@ -29,7 +29,8 @@ let main =
   begin
     printf "%s\n" "hi";
     let tdb_paths = TdbPaths.{tempdir = "./awesome"; file = "./awesome.tdb"} in
-    let _ = make_database tdb_paths in
+    let cons = make_database tdb_paths in
+    let _ = Constructor.finish ~cons:cons () in
     print_database tdb_paths
   end;;
 
