@@ -11,6 +11,7 @@ open Core.Std;;
 (* We seriously need consistent error handling.
  * let's move everything over to `Ok | `Error *)
 (* and have _exn variants as well *)
+(* it would be a good idea to allow users to fold over traildbs as well *)
 
 let (@->) = Ctypes.(@->);;
 let returning = Ctypes.returning;;
