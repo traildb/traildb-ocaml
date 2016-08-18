@@ -1,18 +1,20 @@
-.PHONY:
-	all
+.PHONY: all clean
+
+SOURCES := $(find . -type f -name '*.ml' -maxdepth 1)
+SOURCES += traildb_types.ml.m4
 
 all: hello.native
 
 clean:
-	$(RM) traildb_types.ml
+	$(RM) src/traildb_types.ml
 	$(RM) hello.native
 	$(RM) -rf _build
 
 traildb_types.ml: traildb_types.ml.m4
-	m4 traildb_types.ml.m4 > traildb_types.ml
+	m4 $< > $@
 
-hello.native: hello.ml traildb_types.ml
-	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb hello.native
+hello.native: $(SOURCES)
+	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb $@
 
 # Actually this is completely expected,
 # libffi does not support the bytecode compiler yet.
