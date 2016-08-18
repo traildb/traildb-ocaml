@@ -1,16 +1,20 @@
 .PHONY: all clean
 
 SOURCES := $(find . -type f -name '*.ml' -maxdepth 1)
-SOURCES += traildb_types.ml.m4
+SOURCES += traildb_types.ml
 
 all: hello.native
 
 clean:
-	$(RM) src/traildb_types.ml
+	$(RM) traildb_types.ml
+	$(RM) traildb_types.mli
 	$(RM) hello.native
 	$(RM) -rf _build
 
 traildb_types.ml: traildb_types.ml.m4
+	m4 $< > $@
+
+traildb.mli: traildb.mli.m4
 	m4 $< > $@
 
 hello.native: $(SOURCES)

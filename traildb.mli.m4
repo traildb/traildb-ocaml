@@ -1,52 +1,46 @@
 (* all of these types are completely abstract *)
 
-type tdb;;
-val tdb : tdb Ctypes_static.typ;;
+define(`CTYP',
+`type' $1;;
+`val' $1 : $1 `Ctypes_static.typ;;'
 
-type cons;;
-val cons : cons Ctypes_static.typ;;
+`type' $1_opt;;
+`val' $1_opt : $1_opt `Ctypes_static.typ;;'
 
-type error;;
-val error : error Ctypes_static.typ;;
 
-type uuid;;
-val uuid : uuid Ctypes_static.typ;;
+)
 
-type values;;
-val values : values Ctypes_static.typ;;
+CTYP(`tdb')
+CTYP(`cons')
+CTYP(`error')
+CTYP(`uuid')
+CTYP(`values')
+CTYP(`value_lengths')
+CTYP(`tdb_field')
+CTYP(`cursor')
+CTYP(`event_filer')
+CTYP(`event')
+CTYP(`tdb_item')
+CTYP(`tdb_val')
+CTYP(`trail_id')
 
+`
+(* timestamp is actually a synonym for unsigned 64 int *)
+'
+
+`
 type timestamp = Unsigned.uint64;;
 val timestamp : timestamp Ctypes_static.typ;;
+'
 
-type value_lengths;;
-val value_lengths : value_lengths Ctypes_static.typ;;
+changequote([[[[,]]]])
 
-type tdb_field;;
-val tdb_field : tdb_field Ctypes_static.typ;;
+[[[[
+(* C functions *)
 
-type single_value_length;;
-val single_value_length : single_value_length Ctypes_static.typ;;
-
-type cursor;;
-val cursor : cursor Ctypes_static.typ;;
-
-type event_filter;;
-val cursor : cursor Ctypes_static.typ;;
-
-type event;;
-val event_filter : event_filter Ctypes_static.typ;;
-
-type tdb_item;;
-val tdb_item : tdb_item Ctypes_static.typ;;
-
-type tdb_val;;
-val tdb_val : tdb_val Ctypes_static.typ;;
-
-type trail_id;;
-val trail_id : trail_id Ctypes_static.typ;;
 
 (* initialize a constructor *)
-val tdb_cons_init : unit -> tdb;;
+val tdb_cons_init : unit -> cons;;
 
 (* open a constructor *)
 val tdb_cons_open : cons -> string -> string Ctypes_static.ptr -> Unsigned.uint64 -> error;;
@@ -142,4 +136,4 @@ module Db : sig
   (* our pointer can be null here *)
   val new_cursor : t -> (cursor);;
 end;;
-
+]]]]

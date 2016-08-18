@@ -50,10 +50,9 @@ module Constructor = struct
     ofields : string list;
   };;
 
-  (* TODO: handle error from tdb_cons_open *)
   (* TODO: memory management of the path C-string? *)
   let create ~root ~ofields () =
-    let cons = tdb_cons_init () in
+    let cons = tdb_cons_init () |> Option.value_exn in
     let len_ofields = Unsigned.UInt64.of_int
     (List.length ofields) in
     let c_ofields =
@@ -109,7 +108,7 @@ module Db = struct
   | `No -> failwith "path does not exist"
   | `Unknown -> failwith "path not known to exist"
   | `Yes -> (
-    let db = tdb_init () in
+    let db = tdb_init () |> Option.value_exn in
     let err = tdb_open db path in
     match is_tdb_err_ok err with
     | `Error -> failwith "failed to open tdb"
@@ -119,10 +118,12 @@ module Db = struct
       (* TODO converting a UInt64 to an int can fail potentially!
        * we should probably use a different type here 
        * TODO: Is this how we convert from num_fields to a tdb_field? *)
-      let fields = List.init (Unsigned.UInt64.to_int num_fields) ~f:nth_field in
+      let fields = List.init (Unsigned.UInt64.to_int num_fields ) ~f:nth_field in
       {
         tdb = db;
-        fields = fields;
+        (* TODO: a value_exn does not belong here we 
+         * should probable fail in a more informative way *)
+        fields = List.map fields (fun x -> Option.value_exn x);
       }
     )
   )

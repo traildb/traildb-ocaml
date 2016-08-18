@@ -7,7 +7,7 @@ let (%) = Core.Std.Fn.compose;;
 
 (* tdb_cons *tdb_cons_init(void) *)
 let tdb_cons_init = 
-  foreign "tdb_cons_init" (Ctypes.void @-> returning cons);;
+  foreign "tdb_cons_init" (Ctypes.void @-> returning cons_opt);;
 
 (* tdb_error tdb_cons_open(tdb_cons *cons,
                            const char *root,
@@ -57,7 +57,7 @@ let tdb_error_str =
 
 (* tdb *tdb_init(void) *)
 let tdb_init =
-  foreign "tdb_init" (Ctypes.void @-> returning tdb);;
+  foreign "tdb_init" (Ctypes.void @-> returning tdb_opt);;
 
 (* tdb_error tdb_open(tdb *db, const char *orig_root) *)
 let tdb_open =
@@ -99,7 +99,7 @@ let pair_tdb_get_field tdb str =
 (* const char *tdb_get_field_name(const tdb *db,
  *                                tdb_field field) *)
 let tdb_get_field_name =
-  foreign "tdb_get_field_name" (tdb @-> tdb_field @-> returning Ctypes.string);;
+  foreign "tdb_get_field_name" (tdb @-> tdb_field @-> returning Ctypes.string_opt);;
 
 (* tdb_item tdb_get_item(const tdb *db,
                          tdb_field field,
@@ -117,18 +117,18 @@ let tdb_get_item =
                              tdb_val val,
                              uint64_t *value_length) *)
 let tdb_get_value =
-  foreign "tdb_get_item" (tdb @-> tdb_field @-> tdb_val @-> returning single_value_length);;
+  foreign "tdb_get_item" (tdb @-> tdb_field @-> tdb_val @-> single_value_length @-> returning Ctypes.string_opt);;
 
 (* const char *tdb_get_item_value(const tdb *db,
                                   tdb_item item,
                                   uint64_t *value_length) *)
 let tdb_get_item_value =
-  foreign "tdb_get_item_value" (tdb @-> tdb_item @-> single_value_length @-> returning Ctypes.string);;
+  foreign "tdb_get_item_value" (tdb @-> tdb_item @-> single_value_length @-> returning Ctypes.string_opt);;
 
 (* const uint8_t *tdb_get_uuid(const tdb *db,
                                uint64_t trail_id) *)
 let tdb_get_uuid =
-  foreign "tdb_get_uuid" (tdb @-> tdb_item @-> returning uuid);;
+  foreign "tdb_get_uuid" (tdb @-> tdb_item @-> returning uuid_opt);;
 
 
 (* tdb_error tdb_get_trail_id(const tdb *db,
@@ -172,9 +172,9 @@ let tdb_max_timestamp =
 let tdb_version =
   foreign "tdb_version" (tdb @-> returning Ctypes.uint64_t);;
 
-(* TDB_EXPORT tdb_cursor *tdb_cursor_new(const tdb *db) *)
+(* tdb_cursor *tdb_cursor_new(const tdb *db) *)
 let tdb_cursor_new =
-  foreign "tdb_cursor_new" (tdb @-> returning cursor);;
+  foreign "tdb_cursor_new" (tdb @-> returning cursor_opt);;
 
 (* void tdb_cursor_free(tdb_cursor *c) *)
 let tdb_cursor_free =
@@ -200,8 +200,12 @@ let tdb_get_trail_length =
 
 (* extern const tdb_event *tdb_cursor_next(tdb_cursor *cursor); *)
 let tdb_cursor_next =
-  foreign "tdb_cursor_next" (cursor @-> returning event)
+  foreign "tdb_cursor_next" (cursor @-> returning event_opt);;
 
-(* event filer stuff *)
+(* event filter stuff *)
+
+(* struct tdb_event_filter *tdb_event_filter_new(void) *)
+let tdb_event_filter_new =
+  foreign "tdb_event_filter_new" (Ctypes.void @-> returning event_filter_opt);;
 
 
