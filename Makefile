@@ -4,12 +4,19 @@
 all: hello.native
 
 clean:
+	$(RM) traildb_types.ml
 	$(RM) hello.native
 	$(RM) -rf _build
 
-hello.native: hello.ml
+traildb_types.ml: traildb_types.ml.m4
+	m4 traildb_types.ml.m4 > traildb_types.ml
+
+hello.native: hello.ml traildb_types.ml
 	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb hello.native
 
+# Actually this is completely expected,
+# libffi does not support the bytecode compiler yet.
+#
 # fails on OS X at runtime with
 # 
 # % ./hello.byte

@@ -130,6 +130,8 @@ module Db : sig
   type t;;
   val of_path : string -> t;;
   val repr : t -> string;;
+  (* TODO: yes we do, need to make this change,
+   * but only after we can cheaply compare errors *)
   (* TODO: do we want this to be a
    * covariant polymorphic variant? *)
   (* val get_trail_id : t -> string -> [> `Error | `Ok of trail_id];; *)
@@ -137,5 +139,7 @@ module Db : sig
   val get_uuid : t -> trail_id -> uuid;;
   val get_field : t -> string -> (tdb_field * error);;
   val version : t -> Unsigned.uint64;;
+  (* our pointer can be null here *)
+  val new_cursor : t -> (cursor);;
 end;;
 

@@ -1,5 +1,8 @@
 open Core.Std;;
 
+(* TODO: move stuff that can return a null pointer to
+ * use Ctypes.ptr_opt *)
+
 (* TODO maybe use `Hex vs `Bin to
  * separate out cases where we want a hex string versus a binary
  * string *)
@@ -18,6 +21,10 @@ let returning = Ctypes.returning;;
 let (%) = Core.Std.Fn.compose;;
 
 open Foreign;;
+(* types and associated conversion functions *)
+include Traildb_types;;
+
+(*
 
 type tdb = unit Ctypes.ptr;;
 let tdb = Ctypes.ptr Ctypes.void;;
@@ -62,6 +69,9 @@ let event_filter = Ctypes.ptr Ctypes.void;;
 type event = unit Ctypes.ptr;;
 let event = Ctypes.ptr Ctypes.void;;
 
+type trail = unit Ctypes.ptr;;
+let trail = Ctypes.ptr Ctypes.void;;
+
 (* TODO: arguments with this type in the C codebase are typically
  * referred to with value_length as far as I can tell.
  * This type is separated from value_lengths because
@@ -80,18 +90,6 @@ let trail_id = Ctypes.uint64_t;;
 type tdb_val = Unsigned.uint64;;
 let tdb_val = Ctypes.uint64_t;;
 
-(*
- * tdb_opt_key is an enum
- * tdb_opt_value is a union of a (void * )
- * and a uint64_t.
- * 
- * I don't know the exact semantics of this type.
- *
-type opt_key = unit Ctypes.ptr;;
-let opt_key = Ctypes.ptr Ctypes.void;;
-
-type opt_value = unit Ctypes.ptr;;
-let opt_value = Ctypes.ptr Ctypes.void;;
 *)
 
 (* tdb_cons *tdb_cons_init(void) *)
@@ -291,6 +289,9 @@ let tdb_get_trail_length =
 let tdb_cursor_next =
   foreign "tdb_cursor_next" (cursor @-> returning event)
 
+(* event filer stuff *)
+
+
 (* higher-level stuff *)
 (* TODO put the higher-level stuff that doesn't come directly from the C bindings in its own module *)
 
@@ -409,5 +410,8 @@ module Db = struct
 
   let version db =
     tdb_version db.tdb;;
+
+  let new_cursor db =
+    tdb_cursor_new db.tdb;;
 
 end
