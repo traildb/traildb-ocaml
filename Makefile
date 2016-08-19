@@ -1,15 +1,38 @@
-.PHONY: all clean generate
+.PHONY: all clean generate test
 
-SOURCES := $(find . -type f -name '*.ml' -maxdepth 1)
+# TODO: figure out how to make a library
 
-all: hello.native
+# TODO: find a better way to exclude stuff in test
+# in case we happen to write ml files there eventually
+SOURCES := $(shell find . -type f -name '*.ml' -maxdepth 1)
+TESTS := $(shell find ./t -type f -name '*.ml' -maxdepth 1)
+TEST_EXES := $(patsubst %.ml,%.t,$(TESTS))
+
+all: $(TEST_EXES)
 
 clean:
-	$(RM) -f hello.native
+	find ./t -type f -name '*.t' -exec $(RM) {} \;
+	find ./t -type f -name '*.native' -exec $(RM) {} \;
 	$(RM) -rf _build
 
-hello.native: $(SOURCES)
-	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb $@
+# run tests under prove if it exists, fall back to
+# our own test runner
+test: all
+	$(RM) -rf ./t/tmp
+	mkdir -p ./t/tmp
+	which prove && ( cd ./t && prove ) || ./t/run-test
+
+# build native executable for tests
+t/%.native: t/%.ml
+	# builds the file in the current working directory for
+	# some reason, it really shouldn't do that
+	corebuild -pkg ctypes.foreign,testsimple -lflags -cclib,-ltraildb $@
+	# move it into place
+	mv $(notdir $@) $@
+
+# move test files into location
+t/%.t: t/%.native
+	mv $< $@
 
 # Actually this is completely expected,
 # libffi does not support the bytecode compiler yet.

@@ -28,7 +28,7 @@ let tdb_cons_init =
                            uint64_t num_ofields) *)
 let tdb_cons_open =
   "tdb_cons_open" <<< opaque @-> string @-> ptr string @-> uint64_t @@@ tdb_error;;
-  
+
 (* void tdb_cons_close(tdb_cons *cons) *)
 let tdb_cons_close =
   "tdb_cons_close" <<< opaque @@@ void;;
@@ -53,6 +53,33 @@ let tdb_cons_finalize =
 (* const char *tdb_error_str(tdb_error errcode) *)
 let tdb_error_str =
   "tdb_error_str" <<< tdb_error @@@ string;; 
+
+(*  TODO: new
+    (* tdb_field tdb_item_field(tdb_item item) *)
+    let tdb_item_field =
+    "tdb_item_field" <<< uint64_t @@@ uint32_t;;
+
+*)
+
+(* TODO: new
+
+   (* tdb_val tdb_item_val(tdb_item item) *)
+   let tdb_item_val =
+   "tdb_item_val" <<< uint64_t @@@ uint32_t;;
+
+*)
+
+(*
+(* tdb_item tdb_make_item(tdb_field field, tdb_val val) *)
+let tdb_make_item =
+  "tdb_make_item" <<< uint32_t @@@ uint64_t;;
+   *)
+
+(*
+(* int tdb_item_is32(tdb_item item) *)
+let tdb_item_is32 =
+  "tdb_item_is32" <<< uint64_t @@@ int;;
+   *)
 
 (* tdb_error tdb_cons_set_opt(tdb_cons *cons,
                               tdb_opt_key key,
@@ -93,7 +120,7 @@ let tdb_close =
  * do not exist. this is what we want to expose in a slightly higher-level api *)
 (* uint64_t tdb_lexicon_size(const tdb *db, tdb_field field) *)
 let tdb_lexicon_size =
-  "tdb_lexicon_size" <<< opaque @-> opaque @@@ uint64_t;;
+  "tdb_lexicon_size" <<< opaque @-> uint32_t @@@ uint64_t;;
 
 (* TODO: why does get field take both a string name and an int? 
  * What does this function actually do? *)
@@ -101,7 +128,7 @@ let tdb_lexicon_size =
                            const char *field_name,
                            tdb_field *field *)
 let tdb_get_field =
-  "tdb_get_field" <<< opaque @-> string @-> ptr uint32_t @@@ opaque
+  "tdb_get_field" <<< opaque @-> string @-> ptr uint32_t @@@ tdb_error 
 let pair_tdb_get_field tdb str =
   let buf = allocate_n uint32_t ~count:1 in
   let err = tdb_get_field tdb str buf in
@@ -224,4 +251,30 @@ let tdb_cursor_next =
 let tdb_event_filter_new =
   "tdb_event_filter_new" <<< void @@@ opaque_opt;;
 
+(* void tdb_event_filter_free(struct tdb_event_filter *filter) *)
+let tdb_event_filter_new =
+  "tdb_event_filter_new" <<< opaque @@@ void;;
 
+(* tdb_error tdb_event_filter_add_term(struct tdb_event_filter *filter,
+                                       tdb_item term,
+                                       int is_negative) *)
+let tdb_event_filter_add_term =
+  "tdb_event_filter_add_term" <<< opaque @-> tdb_item @-> int @@@ tdb_error;;
+
+(* tdb_error tdb_event_filter_new_clause(struct tdb_event_filter *filter) *)
+let tdb_event_filter_new_clause =
+  "tdb_event_filter_new_clause" <<< opaque @@@ tdb_error;;
+
+(* these functions are not present in the latest release of tdb *)
+
+(* uint64_t tdb_event_filter_num_clauses(const struct tdb_event_filter *filter); *)
+(* let tdb_event_filter_num_clauses =
+   "tdb_event_filter_num_clauses" <<< opaque @@@ uint64_t;; *)
+
+(* tdb_error tdb_event_filter_get_item(const struct tdb_event_filter *filter,
+                                    uint64_t clause_index,
+                                    uint64_t item_index,
+                                    tdb_item *item,
+                                    int *is_negative) *)
+(* let tdb_event_filter_get_item =
+   "tdb_event_filter_get_item" <<< opaque @-> uint64_t @-> uint64_t @-> tdb_item @-> int @@@ tdb_error *)
