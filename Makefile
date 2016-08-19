@@ -1,21 +1,12 @@
-.PHONY: all clean
+.PHONY: all clean generate
 
 SOURCES := $(find . -type f -name '*.ml' -maxdepth 1)
-SOURCES += traildb_types.ml
 
 all: hello.native
 
 clean:
-	$(RM) traildb_types.ml
-	$(RM) traildb_types.mli
-	$(RM) hello.native
+	$(RM) -f hello.native
 	$(RM) -rf _build
-
-traildb_types.ml: traildb_types.ml.m4
-	m4 $< > $@
-
-traildb.mli: traildb.mli.m4
-	m4 $< > $@
 
 hello.native: $(SOURCES)
 	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb $@

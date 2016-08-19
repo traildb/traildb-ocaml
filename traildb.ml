@@ -18,8 +18,7 @@ open Core.Std;;
 open Foreign;;
 (* types and associated conversion functions *)
 (* raw tdb functions *)
-include Traildb_functions;;
-include Traildb_types;;
+module T = Traildb_functions;;
 
 (* higher-level stuff *)
 (* TODO put the higher-level stuff that doesn't come directly from the C bindings in its own module *)
@@ -36,7 +35,7 @@ let uuid_of_string string =
 
 (* TODO: we don't need to use a string here *)
 let is_tdb_err_ok err =
-  let err = tdb_error_str err in
+  let err = T.tdb_error_str err in
   if err = "TDB_ERR_OK" then
     `Ok
   else
@@ -45,14 +44,14 @@ let is_tdb_err_ok err =
 (* TODO list or array *)
 module Constructor = struct
   type t = {
-    cons : cons;
+    cons : unit Ctypes.ptr;
     root : string;
     ofields : string list;
   };;
 
   (* TODO: memory management of the path C-string? *)
   let create ~root ~ofields () =
-    let cons = tdb_cons_init () |> Option.value_exn in
+    let cons = T.tdb_cons_init () |> Option.value_exn in
     let len_ofields = Unsigned.UInt64.of_int
     (List.length ofields) in
     let c_ofields =
@@ -60,7 +59,7 @@ module Constructor = struct
       let c_ofields = Ctypes.CArray.start list in
       c_ofields) in
     let err =
-      tdb_cons_open cons root c_ofields len_ofields in
+      T.tdb_cons_open cons root c_ofields len_ofields in
     { cons=cons; root=root; ofields=ofields };;
 
   (* TODO: dictionary interface *)
@@ -69,11 +68,11 @@ module Constructor = struct
     match String.length uuid0 with
     | 16 ->
         (
-          let value_lengths = List.map values0 ~f:(Unsigned.UInt64.of_int % String.length) in
+          let value_lengths = List.map values0 ~f:(fun x -> x |> String.length |> Unsigned.UInt64.of_int) in
           let value_lengths = Ctypes.CArray.of_list Ctypes.uint64_t value_lengths in
           let value_lengths = Ctypes.CArray.start value_lengths in
           (
-            tdb_cons_add 
+            T.tdb_cons_add 
             cons0.cons
             (uuid_of_string uuid0 |> Ctypes.CArray.start)
             timestamp0
@@ -84,14 +83,14 @@ module Constructor = struct
     | _ -> invalid_arg "uuid must be exactly 16 bytes";;
 
   let finish ~cons:cons0 () =
-    let err = tdb_cons_finalize cons0.cons in
-    let _ = tdb_cons_close cons0.cons in
+    let err = T.tdb_cons_finalize cons0.cons in
+    let _ = T.tdb_cons_close cons0.cons in
     err
 end;;
 
 module Db = struct
   type t = {
-    tdb: tdb;
+    tdb: unit Ctypes.ptr;
     fields: string list
   }
 
@@ -108,40 +107,42 @@ module Db = struct
   | `No -> failwith "path does not exist"
   | `Unknown -> failwith "path not known to exist"
   | `Yes -> (
-    let db = tdb_init () |> Option.value_exn in
-    let err = tdb_open db path in
+    let db = T.tdb_init () |> Option.value_exn in
+    let err = T.tdb_open db path in
     match is_tdb_err_ok err with
     | `Error -> failwith "failed to open tdb"
     | `Ok -> (
-      let num_fields = tdb_num_fields db in
-      let nth_field i = tdb_get_field_name db (tdb_field_of_int i) in
+      let num_fields : Unsigned.uint64 = T.tdb_num_fields db in
+      let nth_field (i : int) = T.tdb_get_field_name db (Unsigned.UInt32.of_int i) in
       (* TODO converting a UInt64 to an int can fail potentially!
        * we should probably use a different type here 
        * TODO: Is this how we convert from num_fields to a tdb_field? *)
-      let fields = List.init (Unsigned.UInt64.to_int num_fields ) ~f:nth_field in
+      let len : int = Unsigned.UInt64.to_int num_fields in
+      let fields_opt : string option list = List.init len ~f:nth_field in
+      let fields : string list = List.map fields_opt ~f:(fun x -> Option.value_exn x) in
       {
         tdb = db;
         (* TODO: a value_exn does not belong here we 
          * should probable fail in a more informative way *)
-        fields = List.map fields (fun x -> Option.value_exn x);
+        fields = fields;
       }
     )
   )
 
   (* TODO: better error handling *)
   let get_trail_id db string =
-    pair_tdb_get_trail_id db.tdb (uuid_of_string string |> Ctypes.CArray.start);;
+    T.pair_tdb_get_trail_id db.tdb (uuid_of_string string |> Ctypes.CArray.start);;
 
   (* TODO: get_uuid can also fail *)
-  let get_uuid db trail_id = tdb_get_uuid db.tdb trail_id;;
+  let get_uuid db trail_id = T.tdb_get_uuid db.tdb trail_id;;
 
   let get_field db field_name =
-    pair_tdb_get_field db.tdb field_name;;
+    T.pair_tdb_get_field db.tdb field_name;;
 
   let version db =
-    tdb_version db.tdb;;
+    T.tdb_version db.tdb;;
 
   let new_cursor db =
-    tdb_cursor_new db.tdb;;
+    T.tdb_cursor_new db.tdb;;
 
 end

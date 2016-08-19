@@ -8,7 +8,7 @@ module TdbPaths = struct
   }
 end;;
 
-let print_err_str x = x |> tdb_error_str |> printf "%s\n";;
+let print_err_str x = x |> T.tdb_error_str |> printf "%s\n";;
 
 (* add values *)
 let make_database tdb_paths =
