@@ -32,21 +32,21 @@ let make_database tdb_paths =
 let main = 
   begin
     let tdb_paths = TdbPaths.{
-        tempdir = "./tmp/awesome";
-        file = "./tmp/awesome.tdb";
+        tempdir = "./t/tmp/empty";
+        file = "./t/tmp/empty.tdb";
       } in
     let cons = make_database tdb_paths in
     (* constructor initialized, tests involving scratch space *)
     let () =
-      test "scratch space \"awesome\" exists"
-        (file_exists "./tmp/awesome") `Yes in
+      test "scratch space \"empty\" exists"
+        (file_exists "./t/tmp/empty") `Yes in
     let _ = Cons.finish cons in
     (* constructor finalized *)
     let () =
-      test "created \"awesome.tdb\" after finalization"
-        (file_exists "./tmp/awesome.tdb") `Yes in
+      test "created \"empty.tdb\" after finalization"
+        (file_exists "./t/tmp/empty.tdb") `Yes in
     (* db opened *)
-    let db = Db.of_path "./tmp/awesome.tdb" in
+    let db = Db.of_path "./t/tmp/empty.tdb" in
     let () = (
 
       test "Db has single field \"time\""

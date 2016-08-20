@@ -4,6 +4,7 @@ use warnings FATAL => 'all';
 use File::Basename;
 
 chdir(dirname(__FILE__));
+chdir(..);
 
 for my $file (<./*.native>) {
     system($file);

@@ -20,7 +20,7 @@ clean:
 test: all
 	$(RM) -rf ./t/tmp
 	mkdir -p ./t/tmp
-	which prove && ( cd ./t && prove ) || ./t/run-test
+	(which prove >/dev/null) && prove || ./t/run-test
 
 # build native executable for tests
 t/%.native: t/%.ml

@@ -1,4 +1,5 @@
 val tdb_error_str : int -> string
+val uuid_of_string : string -> Unsigned.uint8 Ctypes_static.carray
 
 module Cons : sig
   type t;;
