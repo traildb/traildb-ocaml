@@ -1,5 +1,7 @@
 let (<<<) = Foreign.foreign;;
 
+open Core.Std;;
+
 open Ctypes;;
 
 let (%) = Core.Std.Fn.compose;;
@@ -103,6 +105,15 @@ let tdb_init =
 (* tdb_error tdb_open(tdb *db, const char *orig_root) *)
 let tdb_open =
   "tdb_open" <<< opaque @-> string @@@ tdb_error;;
+
+(* helper function tdb_init_open *)
+(* TODO better error messages *)
+let tdb_init_open path =
+  let tdb1 = tdb_init () |> Option.value_exn in
+  let err = tdb_open tdb1 path in
+  match err with
+  | 0 -> tdb1
+  | _ -> failwith "failed to open tdb";;
 
 (* void tdb_willneed(const tdb *db) *)
 let tdb_willneed =

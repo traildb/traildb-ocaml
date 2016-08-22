@@ -8,19 +8,29 @@ SOURCES := $(shell find . -type f -name '*.ml' -maxdepth 1)
 TESTS := $(shell find ./t -type f -name '*.ml' -maxdepth 1)
 TEST_EXES := $(patsubst %.ml,%.t,$(TESTS))
 
+TDB_INFO := ./t/scripts/info
+
+
+PROVE := $(shell command -v prove 2>/dev/null)
+ifeq ($(PROVE),)
+PROVE := './t/run-test'
+endif
+
+
 all: $(TEST_EXES)
 
 clean:
-	find ./t -type f -name '*.t' -exec $(RM) {} \;
-	find ./t -type f -name '*.native' -exec $(RM) {} \;
+	find ./t -name '*.t' -exec $(RM) {} \;
+	find ./t -name '*.native' -exec $(RM) {} \;
+	$(RM) ./t/scripts/info
 	$(RM) -rf _build
 
 # run tests under prove if it exists, fall back to
 # our own test runner
-test: all
+test: all $(TDB_INFO)
 	$(RM) -rf ./t/tmp
 	mkdir -p ./t/tmp
-	(which prove >/dev/null) && prove || ./t/run-test
+	$(PROVE)
 
 # build native executable for tests
 t/%.native: t/%.ml
@@ -33,6 +43,10 @@ t/%.native: t/%.ml
 # move test files into location
 t/%.t: t/%.native
 	mv $< $@
+
+# build the tdb info script.
+$(TDB_INFO): $(TDB_INFO).c
+	$(CC) -ltraildb -o $@ $<
 
 # Actually this is completely expected,
 # libffi does not support the bytecode compiler yet.

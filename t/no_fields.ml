@@ -1,6 +1,7 @@
 open Core.Std;;
 open Traildb;;
 open Printf;;
+open Test_utils;;
 
 module TS = TestSimple;;
 let is = TestSimple.is;;
@@ -18,6 +19,7 @@ module TdbPaths = struct
 end;;
 
 let print_err_str x = x |> tdb_error_str |> printf "%s\n";;
+  
 
 (* add values *)
 let make_database tdb_paths =
@@ -46,13 +48,17 @@ let main =
       test "created \"empty.tdb\" after finalization"
         (file_exists "./t/tmp/empty.tdb") `Yes in
     (* db opened *)
+    let tdbinfo = backtick_assoc "./t/scripts/info ./t/tmp/empty.tdb" in
     let db = Db.of_path "./t/tmp/empty.tdb" in
     let () = (
 
       test "Db has single field \"time\""
         (Db.fields db) ["time"];
 
-      test "Lexicon size for field \"time\" should be zero"
+      test "Db has single field from C perspective"
+        (List.Assoc.find_exn tdbinfo "tdb_num_fields") "1";
+
+      test "Lexicon size for field \"time\" should be two"
         (Db.lexicon_size db "time") (Some (uint64 0));
 
       test "Lexicon size for nonexistent field \"foobar\" should be none"
