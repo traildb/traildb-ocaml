@@ -33,6 +33,7 @@ let make_database tdb_paths =
 
 let main = 
   begin
+    let () = plan 6 in
     let tdb_paths = TdbPaths.{
         tempdir = "./t/tmp/empty";
         file = "./t/tmp/empty.tdb";

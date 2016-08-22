@@ -2,6 +2,8 @@ open Core.Std;;
 
 open Unix;;
 
+let plan = TestSimple.plan;;
+
 let file_exists = Core.Core_sys.file_exists;;
 let uuid_of_string = Traildb.uuid_of_string;;
 
