@@ -11,19 +11,16 @@ type tdb_c_val =
   | Tdb of opaque
   | TdbOpt of opaque_opt
   | TdbNotReady of opaque_opt
-  | Err of opaque
-  | ErrOpt of opaque_opt
-  | ErrNotReady of opaque_opt;;
+  | Err of opaque;;
 
 let get_cons c_val = match c_val with
   | Cons a -> Cons a
   | ConsOpt (Some a) -> Cons a
+  | ConsNotReady _ -> failwith "not ready"
   | _ -> failwith "invalid conversion";;
 
-let get_cons1 c_val = match c_val with
-  | Cons a -> Cons a
-  | ConsOpt (Some a) -> Cons a
-  | ConsNotReady (some a) -> Cons a
+let populate_cons c_val = match c_val with
+  | ConsNotReady a -> a
   | _ -> failwith "invalid conversion";;
 
 let get_tdb c_val = match c_val with
@@ -31,7 +28,6 @@ let get_tdb c_val = match c_val with
   | TdbOpt (Some a) -> Tdb a
   | _ -> failwith "invalid conversion";;
 
-let get_tdb c_val = match c_val with
-  | Err a -> Err a
-  | ErrOpt (Some a) -> Err a
+let populate_tdb c_val = match c_val with
+  | TdbNotReady a -> a
   | _ -> failwith "invalid conversion";;

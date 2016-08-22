@@ -3,13 +3,11 @@ let (<<<) = Foreign.foreign;;
 open Core.Std;;
 
 open Ctypes;;
+open Traildb_opaque_types;;
 
 let (%) = Core.Std.Fn.compose;;
 
 let (@@@) typ0 typ1 = typ0 @-> returning typ1;;
-
-let opaque = ptr void;;
-let opaque_opt = ptr_opt void;;
 
 (* tdb_error is an abstract type *)
 let tdb_error = int;;
@@ -21,19 +19,28 @@ let timestamp = uint64_t;;
 let tdb_val = uint64_t;;
 
 (* tdb_cons *tdb_cons_init(void) *)
-let tdb_cons_init = 
-  "tdb_cons_init" <<< void @@@ opaque_opt;;
+let tdb_cons_init () = 
+  let f = "tdb_cons_init" <<< void @@@ opaque_opt in
+  let out = f () in
+  ConsNotReady out;;
 
 (* tdb_error tdb_cons_open(tdb_cons *cons,
                            const char *root,
                            const char **ofield_names,
                            uint64_t num_ofields) *)
-let tdb_cons_open =
-  "tdb_cons_open" <<< opaque @-> string @-> ptr string @-> uint64_t @@@ tdb_error;;
+let tdb_cons_open cs ro fn num =
+  let f = "tdb_cons_open" <<< opaque @-> string @-> ptr string @-> uint64_t @@@ tdb_error in
+  let out = f (populate_cons cs) ro fn num in
+  (Err out);;
 
 (* void tdb_cons_close(tdb_cons *cons) *)
-let tdb_cons_close =
-  "tdb_cons_close" <<< opaque @@@ void;;
+let tdb_cons_close close =
+  let f = "tdb_cons_close" <<< opaque @@@ void in
+  match close with
+  | Cons a -> f a
+  | ConsOpt a -> f a
+  | ConsNotReady a -> f a
+  ;;
 
 
 (* tdb_error tdb_cons_add(tdb_cons *cons,
@@ -41,20 +48,28 @@ let tdb_cons_close =
                           const uint64_t timestamp,
                           const char **values,
                           const uint64_t *value_lengths) *)
-let tdb_cons_add =
-  "tdb_cons_add" <<< opaque @-> ptr uint8_t @-> timestamp @-> ptr string @-> ptr uint64_t @@@ tdb_error;;
+let tdb_cons_add cs uuid time va le =
+  let f = "tdb_cons_add" <<< opaque @-> ptr uint8_t @-> timestamp @-> ptr string @-> ptr uint64_t @@@ tdb_error in
+  let out = f (get_cons cs) uuid time va le in
+  Err out;;
 
 (* tdb_error tdb_cons_append(tdb_cons *cons, const tdb *db) *)
-let tdb_cons_append =
-  "tdb_cons_append" <<< opaque @-> opaque @@@ opaque;;
+let tdb_cons_append cs db =
+  let f = "tdb_cons_append" <<< opaque @-> opaque @@@ opaque in
+  let out = f (get_cons cs) (get_tdb db) in
+  Err out;;
 
 (* tdb_error tdb_cons_finalize(tdb_cons *cons) *)
-let tdb_cons_finalize =
-  "tdb_cons_finalize" <<< opaque @@@ tdb_error;;
+let tdb_cons_finalize cs =
+  let f = "tdb_cons_finalize" <<< opaque @@@ tdb_error in
+  let out = f (get_cons cs) in
+  Err out;;
 
 (* const char *tdb_error_str(tdb_error errcode) *)
-let tdb_error_str =
-  "tdb_error_str" <<< tdb_error @@@ string;; 
+let tdb_error_str err =
+  let f = "tdb_error_str" <<< tdb_error @@@ string in
+  match err with
+  | Err err -> f err;; 
 
 (*  TODO: new
     (* tdb_field tdb_item_field(tdb_item item) *)
@@ -86,12 +101,14 @@ let tdb_item_is32 =
 (* tdb_error tdb_cons_set_opt(tdb_cons *cons,
                               tdb_opt_key key,
                               tdb_opt_value value) *)
+(* TODO: wrap this thing *)
 let tdb_cons_set_opt =
   "tdb_cons_set_opt" <<< opaque @-> opaque @-> opaque @@@ tdb_error;;
 
 (* tdb_error tdb_cons_get_opt(tdb_cons *cons,
                               tdb_opt_key key,
                               tdb_opt_value *value) *)
+(* TODO: wrap this thing *)
 let tdb_cons_get_opt =
   "tdb_cons_get_opt" <<< opaque @-> opaque @-> opaque @@@ tdb_error;;
 
@@ -99,16 +116,24 @@ let tdb_cons_get_opt =
 (* tdb reading stuff *)
 
 (* tdb *tdb_init(void) *)
-let tdb_init =
-  "tdb_init" <<< void @@@ opaque_opt;;
+let tdb_init () =
+  let f = "tdb_init" <<< void @@@ opaque_opt
+  let out = f () in
+  TdbNotReady out;;
 
 (* tdb_error tdb_open(tdb *db, const char *orig_root) *)
-let tdb_open =
-  "tdb_open" <<< opaque @-> string @@@ tdb_error;;
+let tdb_open db root =
+  let f = "tdb_open" <<< opaque @-> string @@@ tdb_error in
+  let out = f (get_tdb db) root in
+  Err out;;
 
 (* helper function tdb_init_open *)
 (* TODO better error messages *)
 let tdb_init_open path =
+  let tdb1 = tdb_init () in
+  let err = tdb_open 
+
+
   let tdb1 = tdb_init () |> Option.value_exn in
   let err = tdb_open tdb1 path in
   match err with
