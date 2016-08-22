@@ -1,5 +1,7 @@
 open Core.Std;;
 
+val plan : int -> unit;;
+
 val file_exists : ?follow_symlinks:(bool) -> string -> [ `No | `Unknown | `Yes ];;
 
 (* TODO: val uuid_of_string *)

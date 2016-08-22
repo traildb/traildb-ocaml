@@ -16,6 +16,7 @@ let consdir = "./t/tmp/raw_empty";;
 
 let main =
   begin
+    let () = plan 7 in
     let cons_opt = tdb_cons_init () in
     let cons = cons_opt |> Option.value_exn in
     let cons_err = (

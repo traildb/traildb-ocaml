@@ -1,6 +1,7 @@
 open Core.Std;;
 open Traildb_functions;;
 open Printf;;
+open Test_utils;;
 
 module TS = TestSimple;;
 let is = TestSimple.is;;
@@ -47,6 +48,7 @@ let add_row tdb_cons row =
 
 let main () =
   begin
+    let () = plan 8 in
     let cons_opt = tdb_cons_init () in
     let cons = cons_opt |> Option.value_exn in
     let cons_err = (
