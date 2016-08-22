@@ -20,10 +20,9 @@ endif
 all: $(TEST_EXES)
 
 clean:
-	find ./t -name '*.t' -exec $(RM) {} \;
-	find ./t -name '*.native' -exec $(RM) {} \;
-	$(RM) ./t/scripts/info
 	$(RM) -rf _build
+	$(RM) -f t/scripts/info
+	find ./* -name '*.t' -o -name '*.native' | xargs $(RM)
 
 # run tests under prove if it exists, fall back to
 # our own test runner
