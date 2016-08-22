@@ -8,9 +8,12 @@ Uses ctypes.foreign and libffi
 
 ## Make a traildb
 
-    corebuild -pkg hello.native
-    ./native
+    $ make all
 
-Dump the contents of `./awesome.tdb`
+## Run the test suite
 
-    $ tdb dump -i ./awesome.tdb
+    $ make test
+    
+## If you see a failure enter
+
+    $ prove --verbose
