@@ -1,10 +1,14 @@
 .PHONY: all clean generate test
 
+# TODO: in order not to mess with git calls to find
+# must use $(shell find ./* )
+# that will prevent unwanted expansion too.
+
 # TODO: figure out how to make a library
 
 # TODO: find a better way to exclude stuff in test
 # in case we happen to write ml files there eventually
-SOURCES := $(shell find . -type f -name '*.ml' -maxdepth 1)
+SOURCES := $(shell find ./* -type f -name '*.ml' -maxdepth 1)
 TESTS := $(shell find ./t -type f -name '*.ml' -maxdepth 1)
 TEST_EXES := $(patsubst %.ml,%.t,$(TESTS))
 
@@ -22,7 +26,7 @@ all: $(TEST_EXES)
 clean:
 	$(RM) -rf _build
 	$(RM) -f t/scripts/info
-	find ./* -name '*.t' -o -name '*.native' | xargs $(RM)
+	$(RM) $(TEST_EXES)
 
 # run tests under prove if it exists, fall back to
 # our own test runner
