@@ -1,5 +1,5 @@
 .PHONY: all clean test script
-# .NOTPARALLEL:
+.NOTPARALLEL:
 
 # TODO: in order not to mess with git calls to find
 # must use $(shell find ./* )
