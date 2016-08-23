@@ -1,4 +1,5 @@
-.PHONY: all clean generate test
+.PHONY: all clean test script
+.NOTPARALLEL:
 
 # TODO: in order not to mess with git calls to find
 # must use $(shell find ./* )
@@ -12,8 +13,6 @@ SOURCES := $(shell find ./* -type f -name '*.ml' -maxdepth 1)
 TESTS := $(shell find ./t -type f -name '*.ml' -maxdepth 1)
 TEST_EXES := $(patsubst %.ml,%.t,$(TESTS))
 
-TDB_INFO := ./t/scripts/info
-
 
 PROVE := $(shell command -v prove 2>/dev/null)
 ifeq ($(PROVE),)
@@ -21,16 +20,20 @@ PROVE := './t/run-test'
 endif
 
 
-all: $(TEST_EXES)
+all: $(TEST_EXES) script
 
 clean:
 	$(RM) -rf _build
 	$(RM) -f t/scripts/info
 	$(RM) $(TEST_EXES)
+	cd t/scripts && $(MAKE) clean
+
+script:
+	cd t/scripts && $(MAKE)
 
 # run tests under prove if it exists, fall back to
 # our own test runner
-test: all $(TDB_INFO)
+test: all
 	$(RM) -rf ./t/tmp
 	mkdir -p ./t/tmp
 	$(PROVE)
@@ -48,8 +51,6 @@ t/%.t: t/%.native
 	mv $< $@
 
 # build the tdb info script.
-$(TDB_INFO): $(TDB_INFO).c
-	$(CC) -ltraildb -o $@ $<
 
 # Actually this is completely expected,
 # libffi does not support the bytecode compiler yet.
