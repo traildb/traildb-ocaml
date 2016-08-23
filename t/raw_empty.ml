@@ -2,6 +2,7 @@ open Core.Std;;
 open Traildb_functions;;
 open Printf;;
 open Test_utils;;
+open Traildb_opaque_types;;
 
 module TS = TestSimple;;
 let is = TestSimple.is;;
@@ -37,7 +38,7 @@ let main =
     let () =
       test "tdb_cons_open succeeded"
         cons_err 0 in
-    let final_err = tdb_cons_finalize cons in
+    let final_err = tdb_cons_finalize (Cons cons) in
     let () =
       test "tdb_cons_finalize succeeded"
         final_err 0 in

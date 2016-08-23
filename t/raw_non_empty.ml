@@ -2,6 +2,7 @@ open Core.Std;;
 open Traildb_functions;;
 open Printf;;
 open Test_utils;;
+open Traildb_opaque_types;;
 
 module TS = TestSimple;;
 let is = TestSimple.is;;
@@ -49,11 +50,8 @@ let add_row tdb_cons row =
 let main () =
   begin
     let () = plan 8 in
-    let cons_opt = tdb_cons_init () in
-    let cons = cons_opt |> Option.value_exn in
-    let cons_err = (
-      tdb_cons_open
-        cons
+    let cons = (
+      tdb_cons_init_open
         consdir
         (
           Ctypes.CArray.start (
@@ -68,7 +66,7 @@ let main () =
     ) in
     let () =
       test "tdb_cons_open succeeded"
-        cons_err 0 in
+        (c_val_head cons) "Cons" in
 
     let add_err = (
       add_row cons {

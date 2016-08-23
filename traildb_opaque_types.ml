@@ -2,32 +2,44 @@ open Core.Std;;
 open Ctypes;;
 
 let opaque = ptr void;;
-let opaque = ptr_opt void;;
+let opaque_opt = ptr_opt void;;
+
+type opaque = unit ptr;;
 
 type tdb_c_val =
     Cons of opaque
-  | ConsOpt of opaque_opt
-  | ConsNotReady of opaque_opt
   | Tdb of opaque
-  | TdbOpt of opaque_opt
-  | TdbNotReady of opaque_opt
-  | Err of opaque;;
+  | Cursor of opaque
+  | Filter of opaque
+  | Event of opaque
+  | Err of int
+  | Null of string;;
 
 let get_cons c_val = match c_val with
-  | Cons a -> Cons a
-  | ConsOpt (Some a) -> Cons a
-  | ConsNotReady _ -> failwith "not ready"
-  | _ -> failwith "invalid conversion";;
-
-let populate_cons c_val = match c_val with
-  | ConsNotReady a -> a
+  | Cons a -> a
   | _ -> failwith "invalid conversion";;
 
 let get_tdb c_val = match c_val with
-  | Tdb a -> Tdb a
-  | TdbOpt (Some a) -> Tdb a
+  | Tdb a -> a
   | _ -> failwith "invalid conversion";;
 
-let populate_tdb c_val = match c_val with
-  | TdbNotReady a -> a
+let get_cursor c_val = match c_val with
+  | Cursor a -> a
   | _ -> failwith "invalid conversion";;
+
+let get_event c_val = match c_val with
+  | Event a -> a
+  | _ -> failwith "invalid conversion";;
+
+let get_filter c_val = match c_val with
+  | Filter a -> a
+  | _ -> failwith "invalid conversion";;
+
+let c_val_head c_val = match c_val with
+  | Cons _ -> "Cons"
+  | Tdb _ -> "Tdb"
+  | Cursor _ -> "Cursor"
+  | Filter _ -> "Filter"
+  | Event _ -> "Event"
+  | Err _ -> "Err"
+  | Null _ -> "Null";;

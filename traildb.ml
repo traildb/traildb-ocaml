@@ -20,6 +20,8 @@ open Foreign;;
 (* raw tdb functions *)
 module T = Traildb_functions;;
 
+module O = Traildb_opaque_types;;
+
 let tdb_error_str = T.tdb_error_str;;
 
 (* higher-level stuff *)
@@ -46,22 +48,21 @@ let is_tdb_err_ok err =
 (* TODO list or array *)
 module Cons = struct
   type t = {
-    cons : unit Ctypes.ptr;
+    cons : O.tdb_c_val;
     root : string;
     ofields : string list;
   };;
 
   (* TODO: memory management of the path C-string? *)
   let create ~root ofields =
-    let cons = T.tdb_cons_init () |> Option.value_exn in
     let len_ofields = Unsigned.UInt64.of_int
         (List.length ofields) in
     let c_ofields =
       (let list = Ctypes.CArray.of_list Ctypes.string ofields in
        let c_ofields = Ctypes.CArray.start list in
        c_ofields) in
-    let err =
-      T.tdb_cons_open cons root c_ofields len_ofields in
+    let cons =
+      T.tdb_cons_init_open root c_ofields len_ofields in
     { cons=cons; root=root; ofields=ofields };;
 
   (* TODO: dictionary interface *)
@@ -100,7 +101,7 @@ end;;
 
 module Db = struct
   type t = {
-    tdb: unit Ctypes.ptr;
+    tdb: O.tdb_c_val;
     fields: string list
   }
 
@@ -117,27 +118,23 @@ module Db = struct
     | `No -> failwith "path does not exist"
     | `Unknown -> failwith "path not known to exist"
     | `Yes -> (
-        let db = T.tdb_init () |> Option.value_exn in
-        let err = T.tdb_open db path in
-        match is_tdb_err_ok err with
-        | `Error -> failwith "failed to open tdb"
-        | `Ok -> (
-            let num_fields : Unsigned.uint64 = T.tdb_num_fields db in
-            let nth_field (i : int) = T.tdb_get_field_name db (Unsigned.UInt32.of_int i) in
-            (* TODO converting a UInt64 to an int can fail potentially!
-             * we should probably use a different type here 
-             * TODO: Is this how we convert from num_fields to a tdb_field? *)
-            let len : int = Unsigned.UInt64.to_int num_fields in
-            let fields_opt : string option list = List.init len ~f:nth_field in
-            let fields : string list = List.map fields_opt ~f:(fun x -> Option.value_exn x) in
-            {
-              tdb = db;
-              (* TODO: a value_exn does not belong here we 
-               * should probable fail in a more informative way *)
-              fields = fields;
-            }
-          )
+        let db = T.tdb_init_open path in
+        let num_fields : Unsigned.uint64 = T.tdb_num_fields db in
+        let nth_field (i : int) = T.tdb_get_field_name db (Unsigned.UInt32.of_int i) in
+        (* TODO converting a UInt64 to an int can fail potentially!
+         * we should probably use a different type here 
+         * TODO: Is this how we convert from num_fields to a tdb_field? *)
+        let len : int = Unsigned.UInt64.to_int num_fields in
+        let fields_opt : string option list = List.init len ~f:nth_field in
+        let fields : string list = List.map fields_opt ~f:(fun x -> Option.value_exn x) in
+        {
+          tdb = db;
+          (* TODO: a value_exn does not belong here we 
+           * should probable fail in a more informative way *)
+          fields = fields;
+        }
       )
+
 
   let fields t = t.fields;;
 

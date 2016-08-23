@@ -7,6 +7,8 @@ module TS = TestSimple;;
 let is = TestSimple.is;;
 let test str x y = is x y str;;
 
+open Traildb_opaque_types;;
+
 let consdir = "./t/tmp/raw_empty_with_fields";;
 
 type row = {
@@ -64,11 +66,11 @@ let main =
         cons_err 0 in
 
 
-    let final_err = tdb_cons_finalize cons in
+    let final_err = tdb_cons_finalize (Cons cons) in
     let () =
       test "tdb_cons_finalize succeeded"
         final_err 0 in
-    let tdb1 = tdb_init_open "./t/tmp/raw_empty_with_fields" in
+    let tdb1 : tdb_c_val = tdb_init_open "./t/tmp/raw_empty_with_fields" in
     let () =
       test "tdb_num_trails" 
         (tdb_num_trails tdb1 |> string_of_uint64) "0";
