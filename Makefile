@@ -1,66 +1,14 @@
-.PHONY: all clean test script
-.NOTPARALLEL:
+.PHONY: all clean
 
-# TODO: in order not to mess with git calls to find
-# must use $(shell find ./* )
-# that will prevent unwanted expansion too.
-
-# TODO: figure out how to make a library
-
-# TODO: find a better way to exclude stuff in test
-# in case we happen to write ml files there eventually
-SOURCES := $(shell find ./* -type f -name '*.ml' -maxdepth 1)
-TESTS := $(shell find ./t -type f -name '*.ml' -maxdepth 1)
-TEST_EXES := $(patsubst %.ml,%.t,$(TESTS))
-
-
-PROVE := $(shell command -v prove 2>/dev/null)
-ifeq ($(PROVE),)
-PROVE := './t/run-test'
-endif
-
-
-all: $(TEST_EXES) script
+all:
+	cd t && $(MAKE) all
+	cd t/scripts && $(MAKE) all
 
 clean:
 	$(RM) -rf _build
-	$(RM) -f t/scripts/info
-	$(RM) $(TEST_EXES)
+	cd t && $(MAKE) clean
 	cd t/scripts && $(MAKE) clean
 
-script:
-	cd t/scripts && $(MAKE)
-
-# run tests under prove if it exists, fall back to
-# our own test runner
-test: all
-	$(RM) -rf ./t/tmp
-	mkdir -p ./t/tmp
-	$(PROVE)
-
-# build native executable for tests
-t/%.native: t/%.ml
-	# builds the file in the current working directory for
-	# some reason, it really shouldn't do that
-	corebuild -pkg ctypes.foreign,testsimple -lflags -cclib,-ltraildb $@
-	# move it into place
-	mv $(notdir $@) $@
-
-# move test files into location
-t/%.t: t/%.native
-	mv $< $@
-
-# build the tdb info script.
-
-# Actually this is completely expected,
-# libffi does not support the bytecode compiler yet.
-#
-# fails on OS X at runtime with
-# 
-# % ./hello.byte
-# Fatal error: exception Dl.DL_error("dlsym(RTLD_DEFAULT, tdb_cons_init): symbol not found")
-#
-# even happens when DYLD_LIBRARY_PATH contains the libtraildb.dylib and libtraildb.a files
-#
-# hello.byte: hello.ml
-# 	corebuild -pkg ctypes.foreign -lflags -cclib,-ltraildb hello.byte
+test:
+	cd t && $(MAKE) all
+	prove

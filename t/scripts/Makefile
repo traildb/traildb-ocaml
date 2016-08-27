@@ -1,5 +1,5 @@
-CFLAGS=-Wall -Werror
-LDFLAGS=-ltraildb
+CFLAGS += -Wall -Werror
+LDFLAGS += -ltraildb
 
 .PHONY: all clean
 
