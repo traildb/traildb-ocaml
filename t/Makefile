@@ -6,9 +6,12 @@ SOURCES := $(wildcard *.ml)
 DOT_NATIVE := $(patsubst %.ml,%.native,$(SOURCES))
 TARGETS := $(patsubst %.ml,%.t,$(SOURCES))
 
-all: $(TARGETS) ;
+all: $(TARGETS) tmp;
 
 %.t: compile.artifact ;
+
+tmp:
+	mkdir -p tmp
 
 compile.artifact: $(SOURCES)
 	cd .. &&                                     \
@@ -20,7 +23,7 @@ compile.artifact: $(SOURCES)
 	touch compile.artifact
 
 clean:
-	$(RM) -rf tmp
+	$(RM) -rf tmp/*
 	$(RM) compile.artifact
 	$(RM) $(DOT_NATIVE)
 	$(RM) $(TARGETS)

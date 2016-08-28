@@ -9,6 +9,5 @@ clean:
 	cd t && $(MAKE) clean
 	cd t/scripts && $(MAKE) clean
 
-test:
-	cd t && $(MAKE) all
+test: all
 	prove
