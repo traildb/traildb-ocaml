@@ -15,31 +15,31 @@ type tdb_c_val =
   | Err of int
   | Null of string;;
 
-let get_cons c_val = match c_val with
-  | Cons a -> a
-  | _ -> failwith "invalid conversion";;
-
-let get_tdb c_val = match c_val with
-  | Tdb a -> a
-  | _ -> failwith "invalid conversion";;
-
-let get_cursor c_val = match c_val with
-  | Cursor a -> a
-  | _ -> failwith "invalid conversion";;
-
-let get_event c_val = match c_val with
-  | Event a -> a
-  | _ -> failwith "invalid conversion";;
-
-let get_filter c_val = match c_val with
-  | Filter a -> a
-  | _ -> failwith "invalid conversion";;
-
 let c_val_head c_val = match c_val with
   | Cons _ -> "Cons"
   | Tdb _ -> "Tdb"
   | Cursor _ -> "Cursor"
   | Filter _ -> "Filter"
   | Event _ -> "Event"
-  | Err _ -> "Err"
-  | Null _ -> "Null";;
+  | Err err -> "Err " ^ string_of_int err
+  | Null str -> "Null " ^ str;;
+
+let get_cons c_val = match c_val with
+  | Cons a -> a
+  | _ -> failwith ("invalid conversion to cons from " ^ c_val_head c_val);;
+
+let get_tdb c_val = match c_val with
+  | Tdb a -> a
+  | _ -> failwith ("invalid conversion to cons from " ^ c_val_head c_val);;
+
+let get_cursor c_val = match c_val with
+  | Cursor a -> a
+  | _ -> failwith ("invalid conversion to cons from " ^ c_val_head c_val);;
+
+let get_event c_val = match c_val with
+  | Event a -> a
+  | _ -> failwith ("invalid conversion to cons from " ^ c_val_head c_val);;
+
+let get_filter c_val = match c_val with
+  | Filter a -> a
+  | _ -> failwith ("invalid conversion to cons from " ^ c_val_head c_val);;
