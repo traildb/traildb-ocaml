@@ -43,7 +43,7 @@ let is_tdb_err_ok err =
   if err = "TDB_ERR_OK" then
     `Ok
   else
-    `Error;;
+    `Error err;;
 
 (* TODO list or array *)
 module Cons = struct
@@ -134,16 +134,17 @@ module Db = struct
           fields = fields;
         }
       )
+  ;;
 
 
   let fields t = t.fields;;
 
-  (* todo, we're ignore err incorporate into the return type
+  (* TODO, we're ignore err incorporate into the return type
      somehow *)
   let lexicon_size t field = 
     let (id, err) = T.pair_tdb_get_field t.tdb field in
     match err with
     | 0 -> Some (T.tdb_lexicon_size t.tdb id)
-    | _ -> None;;
+    | _ -> None
   ;;
-end
+end;;
